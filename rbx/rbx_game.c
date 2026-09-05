@@ -1,51 +1,8 @@
-/* rbx/rbx_game.c — сборка модуля: хуки рантайма init/update/draw/touch
- * и публичный вход rbx_key (клавиатура превью). */
+/* Хуки Android и браузерного превью делегируют FaiCraft Engine. */
 #include "rbx_internal.h"
-#include <string.h>
 
-double rbx_t_abs = 0.0;
-double rbx_join_t = 0.0;
-
-void rbx_key(const char *name, int down) {
-    rbx_key_state(name, down);
-}
-
-void init(AAssetManager *assets) {
-    (void)assets;
-    snd_load("send.wav");
-    snd_load("notify.wav");
-    rbx_world_build();
-    rbx_player_spawn();
-    rbx_world_collect_reset();
-    rbx_join_t = 0;
-    rbx_t_abs = 0;
-    rbx_input_reset();
-    ds_log("Enjoer: 3D-плейс, заход сразу в мир");
-}
-
-void reset(void) {
-    rbx_world_build();
-    rbx_player_spawn();
-    rbx_world_collect_reset();
-    rbx_join_t = 0;
-    rbx_input_reset();
-}
-
-void update(void) {
-    float d = (float)dt;
-    if (d > 0.05f) d = 0.05f;
-    rbx_t_abs += d;
-    rbx_join_t += d;
-    rbx_input_layout();
-    rbx_player_update(d);
-    rbx_bots_update(d);
-}
-
-void draw(Buffer *buffer) {
-    rbx_scene_draw(buffer);
-    rbx_hud_draw();
-}
-
-void touch(float x, float y, int action, int pointer_id) {
-    rbx_input_touch(x, y, action, pointer_id);
-}
+void reset(void) { rbx_engine_reset(); }
+void init(AAssetManager *assets) { rbx_engine_boot(assets); }
+void update(void) { rbx_engine_update((float)dt); }
+void draw(Buffer *buffer) { rbx_engine_draw(buffer); }
+void touch(float x, float y, int action, int id) { rbx_engine_touch(x, y, action, id); }
