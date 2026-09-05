@@ -1,6 +1,6 @@
-/* FaiCraft Engine — публичный API блочного движка на чистом C.
- * Runtime по-прежнему вызывает init/update/draw/touch/reset из rbx_game.c,
- * а внешние игры могут использовать rbx_engine_* напрямую. */
+/* FaiCraft Engine — низкоуровневый API блочного мира на чистом C.
+ * Для создания игр подключай fc/fc_engine.h; runtime по-прежнему вызывает
+ * init/update/draw/touch/reset из rbx_game.c. */
 #ifndef RBX_H
 #define RBX_H
 

@@ -1,5 +1,6 @@
 /* FaiCraft Engine: конфигурация, жизненный цикл и публичные операции мира. */
 #include "rbx_internal.h"
+#include "fc/fc_internal.h"
 #include <math.h>
 #include <string.h>
 
@@ -68,6 +69,7 @@ void rbx_engine_cancel_input(void) {
 void rbx_engine_reset(void) {
     const RbxEngineConfig *c = rbx_engine_config();
     rbx_engine_cancel_input();
+    fc_scene_clear();
     rbx_world_build(c->seed);
     rbx_player_spawn();
     float x, z;
@@ -75,6 +77,7 @@ void rbx_engine_reset(void) {
     rbx_world_update(x, z);
     rbx_t_abs = 0;
     rbx_input_layout();
+    fc_game_emit_reset();
 }
 
 void rbx_engine_boot(AAssetManager *assets) {
@@ -82,8 +85,9 @@ void rbx_engine_boot(AAssetManager *assets) {
     const RbxEngineConfig *c = rbx_engine_config();
     snd_load("send.wav");
     rbx_engine_reset();
-    ds_log("FaiCraft Engine: seed=%u, chunk=%d, cache=%dx%d, view=%.0f",
-           (unsigned)c->seed, CHUNK_SIZE, WORLD_RADIUS * 2 + 1,
+    fc_game_emit_start();
+    ds_log("FaiCraft Engine: game=%s, seed=%u, chunk=%d, cache=%dx%d, view=%.0f",
+           fc_game_name(), (unsigned)c->seed, CHUNK_SIZE, WORLD_RADIUS * 2 + 1,
            WORLD_RADIUS * 2 + 1, c->view_distance);
 }
 
@@ -97,14 +101,18 @@ void rbx_engine_update(float seconds) {
     float x, z;
     rbx_player_pos(&x, NULL, &z, NULL, NULL);
     rbx_world_update(x, z);
+    fc_game_emit_update(d);
+    fc_scene_update(d);
 }
 
 void rbx_engine_draw(Buffer *buffer) {
     rbx_scene_draw(buffer);
     rbx_hud_draw();
+    fc_game_emit_draw_2d();
 }
 
 void rbx_engine_touch(float x, float y, int action, int pointer_id) {
+    if (fc_game_emit_touch(x, y, action, pointer_id)) return;
     rbx_input_touch(x, y, action, pointer_id);
 }
 
@@ -137,7 +145,11 @@ void rbx_engine_player_state(RbxPlayerState *out) {
 int rbx_engine_block(int x, int y, int z) { return rbx_world_block(x, y, z); }
 
 int rbx_engine_set_block(int x, int y, int z, int block) {
-    return rbx_world_set_block(x, y, z, block);
+    int old_block = rbx_world_block(x, y, z);
+    int ok = rbx_world_set_block(x, y, z, block);
+    if (ok && old_block != rbx_world_block(x, y, z))
+        fc_game_emit_block_changed(x, y, z, old_block, block);
+    return ok;
 }
 
 void rbx_engine_clear_edits(void) { rbx_world_clear_edits(); }
@@ -190,6 +202,7 @@ static int key_is(const char *name, char lo, char hi) {
 
 void rbx_engine_key(const char *name, int down) {
     int d = down != 0;
+    if (fc_game_emit_key(name, d)) return;
     if (key_is(name, 'q', 'Q')) {
         if (d && !edit_q_down) rbx_engine_break_selected(EDIT_REACH);
         edit_q_down = d;

@@ -41,10 +41,64 @@ raycast, чтение/запись блоков и базовые действи
 HUD минимален: стик без подложки, толстое чёрное кольцо, белый прицел, кнопка
 полёта и условная кнопка прыжка. На Android включён `sensorLandscape`.
 
-## Публичный API движка
+## API для создания игр
 
-Главная точка входа — `rbx/rbx.h`. Старый префикс `rbx_` сохранён, чтобы не
-ломать текущий runtime, но слой теперь описывает FaiCraft Engine.
+Для игровых модулей теперь есть отдельный слой **FaiCraft Game API**:
+`fc/fc_engine.h`. Он отделяет игру от Android/preview runtime и даёт готовые
+строительные блоки:
+
+- `FcGame` — callbacks игры: `on_start`, `on_reset`, `on_update`, `on_draw_3d`,
+  `on_draw_2d`, `on_key`, `on_touch`, `on_block_changed`;
+- `FcEntity` — простые игровые объекты со сценой, transform, velocity,
+  цветом, callback обновления и box-рендером;
+- `fc_scene_*` / `fc_entity_*` — создание, поиск, удаление, обновление,
+  отрисовка и проверка пересечения с игроком;
+- низкоуровневый блочный API остаётся в `rbx/rbx.h`: конфиг движка, мир,
+  игрок, raycast, установка/разрушение блоков.
+
+Минимальный игровой модуль выглядит так:
+
+```c
+#include "fc/fc_engine.h"
+#include <string.h>
+
+static int beacon_id;
+
+static void spin(FcEntity *e, float dt) { e->yaw += dt * 1.7f; }
+
+static void on_reset(void) {
+    FcEntity beacon = {0};
+    beacon.kind = FC_ENTITY_BOX;
+    beacon.flags = FC_ENTITY_VISIBLE;
+    beacon.x = 12.5f; beacon.y = 15.0f; beacon.z = 12.5f;
+    beacon.hx = .35f; beacon.hy = .35f; beacon.hz = .35f;
+    beacon.color = 0xFFFFD54Fu;
+    beacon.update = spin;
+    strcpy(beacon.name, "golden_beacon");
+    beacon_id = fc_entity_spawn(&beacon);
+}
+
+static void on_update(float dt) {
+    (void)dt;
+    if (beacon_id && fc_entity_intersects_player(beacon_id))
+        fc_entity_remove(beacon_id);
+}
+
+void register_my_game(void) {
+    static const FcGame game = {
+        .name = "Beacon Collector",
+        .on_reset = on_reset,
+        .on_update = on_update,
+    };
+    fc_game_register(&game);
+}
+```
+
+Полный пример лежит в `examples/fc_minigame.c`. Чтобы собрать свою игру,
+добавь её `.c` файл в `CMakeLists.txt` и/или `tools/preview/build.sh`, вызови
+регистрацию игры до `init`, а дальше используй обычный runtime.
+
+## Низкоуровневый блочный API
 
 ```c
 #include "rbx/rbx.h"
@@ -120,8 +174,8 @@ SANITIZE=1 tools/tests/run.sh
   HUD и reset;
 - `world.c`: seed, материалы, отрицательные координаты, границы чанков/деревьев,
   ограниченный кэш и восстановление;
-- `engine.c`: публичный конфиг, статистика, `set_block`, правки при streaming,
-  raycast, break/place.
+- `engine.c`: публичный конфиг, game callbacks, entity scene, `set_block`,
+  правки при streaming, raycast, break/place.
 
 Sanitizer-режим включает ASan, UBSan и проверку переполнений float-to-int.
 Сборки и временные данные находятся в игнорируемом `build-tests/`.
@@ -134,8 +188,12 @@ runtime.h                  общий API рантайма
 core/                      состояние, строки, массивы, лог, Android-клавиатура
 graphics/                  2D/HUD, текст, текстуры, TTF-движок
 sound/                     WAV, микшер, Android AudioTrack
+fc/
+├── fc_engine.h            API для игровых модулей: callbacks и сущности
+├── fc_game.c              регистрация/диспетчеризация игры
+└── fc_scene.c             простая entity-сцена поверх 3D-рендера
 rbx/
-├── rbx.h                  публичный API FaiCraft Engine
+├── rbx.h                  низкоуровневый API FaiCraft Engine
 ├── rbx_engine.c           конфиг, lifecycle, stats, raycast, break/place
 ├── rbx_terrain.c          шум высот, слои, вода и деревья
 ├── rbx_world.c            кэш чанков, слой правок и меши открытых граней
@@ -150,6 +208,7 @@ rbx/
 game/                      AndroidManifest, Java-мост, шрифт и звуки
 tools/preview/             нативная сборка для браузерного превью
 tools/tests/               регрессионные тесты без Android
+examples/                  пример игрового модуля на FaiCraft Game API
 ```
 
 Каждый `.c` — отдельная единица компиляции, не больше 500 строк, без

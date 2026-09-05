@@ -11,6 +11,7 @@ set(CMAKE_C_STANDARD 99)
 #   core/           рантайм: консоль, ошибки, строки, массивы, клавиатура
 #   graphics/       2D-рендер: примитивы, текстуры, текст (+ ttf/)
 #   sound/          звук: микшер и вывод через AudioTrack
+#   fc/             API создания игр: callbacks и сущности
 #   rbx/            движок: lifecycle, рендер, мир, игрок, ввод, сцена, HUD
 if(NOT ANDROID)
     message(FATAL_ERROR
@@ -36,6 +37,8 @@ add_library(ds_game SHARED
     graphics/ttf/ttf_font.c
     sound/sound.c
     sound/sound_android.c
+    fc/fc_game.c
+    fc/fc_scene.c
     rbx/rbx_engine.c
     rbx/rbx_render.c
     rbx/rbx_shapes.c

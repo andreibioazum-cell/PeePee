@@ -25,6 +25,9 @@ int rbx3d_begin(Buffer *b,int sc,float x,float y,float z,float yaw,float pitch,f
 void rbx3d_sky(uint32_t a,uint32_t b) { (void)a; (void)b; }
 void rbx3d_end(void) {}
 int rbx3d_visible(float x,float y,float z,float hx,float hy,float hz) { (void)x;(void)y;(void)z;(void)hx;(void)hy;(void)hz;return 1; }
+void rbx3d_box(float x,float y,float z,float hx,float hy,float hz,float yaw,uint32_t color) {
+    (void)x;(void)y;(void)z;(void)hx;(void)hy;(void)hz;(void)yaw;(void)color;
+}
 void rbx3d_block_face(float x,float y,float z,int face,int block) {
     (void)x;(void)y;(void)z; CHECK(face>=0&&face<6&&block>0&&block<BLOCK_COUNT); drawn_faces++;
 }

@@ -1,5 +1,6 @@
 /* От первого лица: сцена берёт параметры камеры/неба из FaiCraft Engine. */
 #include "rbx_internal.h"
+#include "fc/fc_internal.h"
 
 void rbx_scene_draw(Buffer *buffer) {
     const RbxEngineConfig *cfg = rbx_engine_config();
@@ -12,5 +13,7 @@ void rbx_scene_draw(Buffer *buffer) {
     if (!rbx3d_begin(buffer, scale, x, y + RBX_PLAYER_EYE_HEIGHT, z, yaw, pitch, cfg->fov_deg)) return;
     rbx3d_sky(cfg->sky_top, cfg->sky_bottom);
     rbx_world_draw();
+    fc_scene_draw_3d();
+    fc_game_emit_draw_3d();
     rbx3d_end();
 }
