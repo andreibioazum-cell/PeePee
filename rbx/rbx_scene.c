@@ -1,13 +1,16 @@
-/* От первого лица, только сгенерированный блочный ландшафт. */
+/* От первого лица: сцена берёт параметры камеры/неба из FaiCraft Engine. */
 #include "rbx_internal.h"
 
 void rbx_scene_draw(Buffer *buffer) {
-    float x,y,z,yaw,pitch;
-    rbx_player_pos(&x,&y,&z,NULL,NULL);
-    rbx_camera_angles(&yaw,&pitch);
-    int scale=(long)screen_w*screen_h>1500000L ? 2 : 1;
-    if (!rbx3d_begin(buffer,scale,x,y+RBX_PLAYER_EYE_HEIGHT,z,yaw,pitch,66)) return;
-    rbx3d_sky(0xFF78B8E8u,0xFFC7E5F5u);
+    const RbxEngineConfig *cfg = rbx_engine_config();
+    float x, y, z, yaw, pitch;
+    rbx_player_pos(&x, &y, &z, NULL, NULL);
+    rbx_camera_angles(&yaw, &pitch);
+    long pixels = (long)screen_w * (long)screen_h;
+    int scale = pixels > cfg->fullres_pixel_limit ? 2 : 1;
+    rbx3d_configure(cfg->fog_start, cfg->fog_end, cfg->view_distance);
+    if (!rbx3d_begin(buffer, scale, x, y + RBX_PLAYER_EYE_HEIGHT, z, yaw, pitch, cfg->fov_deg)) return;
+    rbx3d_sky(cfg->sky_top, cfg->sky_bottom);
     rbx_world_draw();
     rbx3d_end();
 }

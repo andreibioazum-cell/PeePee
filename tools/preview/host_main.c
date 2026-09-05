@@ -172,14 +172,14 @@ static const char *INDEX_HTML =
 "<!doctype html>\n"
 "<html lang=\"ru\"><head><meta charset=\"utf-8\">\n"
 "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">\n"
-"<title>Enjoer — блочный мир</title>\n"
+"<title>FaiCraft Engine</title>\n"
 "<style>\n"
 "html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;overscroll-behavior:none;}\n"
 ".game{position:fixed;inset:0;display:grid;place-items:center;}\n"
 "canvas{display:block;touch-action:none;user-select:none;outline:none;cursor:grab;}\n"
 "canvas:active{cursor:grabbing;}\n"
 "</style></head><body>\n"
-"<main class=\"game\"><canvas id=\"c\" tabindex=\"0\" aria-label=\"Блочный мир. WASD — движение, пробел — прыжок, F — переключить полёт. Слева джойстик, справа камера.\"></canvas></main>\n"
+"<main class=\"game\"><canvas id=\"c\" tabindex=\"0\" aria-label=\"FaiCraft Engine. WASD — движение, Q — сломать блок, E — поставить траву, F — полёт.\"></canvas></main>\n"
 "<script>\n"
 "const cv=document.getElementById('c'),ctx=cv.getContext('2d');\n"
 "let W=960,H=540,img=null;\n"
@@ -241,7 +241,7 @@ static const char *INDEX_HTML =
 "cv.addEventListener('pointercancel',cancelPointer);\n"
 "cv.addEventListener('lostpointercapture',cancelPointer);\n"
 "cv.addEventListener('contextmenu',e=>e.preventDefault());\n"
-"const keyMap={KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d',KeyF:'f',Space:'space',ShiftLeft:'Shift',ShiftRight:'Shift',ArrowLeft:'ArrowLeft',ArrowRight:'ArrowRight',ArrowUp:'ArrowUp',ArrowDown:'ArrowDown'};\n"
+"const keyMap={KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d',KeyF:'f',KeyQ:'q',KeyE:'e',Space:'space',ShiftLeft:'Shift',ShiftRight:'Shift',ArrowLeft:'ArrowLeft',ArrowRight:'ArrowRight',ArrowUp:'ArrowUp',ArrowDown:'ArrowDown'};\n"
 "window.addEventListener('keydown',e=>{\n"
 "  const k=keyMap[e.code];\n"
 "  if(!k||e.ctrlKey||e.metaKey||e.altKey)return;\n"
@@ -302,7 +302,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     listen(srv, 16);
-    fprintf(stderr, "Enjoer 3D preview: http://0.0.0.0:%d (%dx%d, assets=%s)\n",
+    fprintf(stderr, "FaiCraft Engine preview: http://0.0.0.0:%d (%dx%d, assets=%s)\n",
             port, w, h, assets);
 
     static char reqbuf[16384];

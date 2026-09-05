@@ -14,12 +14,20 @@ static float px, py, pz, pvy, cyaw, cpitch, walk;
 static int flying, grounded, touch_jump, jump_latch;
 static int k_w, k_a, k_s, k_d, k_space, k_sink, k_f;
 static int k_left, k_right, k_up, k_down;
+static void clamp_angles(void);
 
 void rbx_player_spawn(void) {
-    px = 8.5f; pz = 8.5f;
-    py = rbx_terrain_height(8, 8) + 1.002f;
+    const RbxEngineConfig *c = rbx_engine_config();
+    px = c->spawn_x;
+    pz = c->spawn_z;
+    if (c->spawn_y <= RBX_ENGINE_AUTO_Y * .5f) {
+        py = rbx_terrain_height((int)floorf(px), (int)floorf(pz)) + 1.002f;
+    } else {
+        py = c->spawn_y;
+    }
     pvy = walk = 0; flying = 0; grounded = 1; touch_jump = jump_latch = 0;
-    cyaw = .7f; cpitch = -.16f;
+    cyaw = c->spawn_yaw; cpitch = c->spawn_pitch;
+    clamp_angles();
 }
 void rbx_player_pos(float *x, float *y, float *z, float *yaw, float *phase) {
     if (x) *x = px;

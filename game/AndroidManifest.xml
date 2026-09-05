@@ -8,14 +8,14 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
 
     <application
-        android:label="Enjoer"
+        android:label="FaiCraft"
         android:hasCode="true"
         android:allowBackup="false"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
 
         <activity
             android:name="com.cb4.GameActivity"
-            android:label="Enjoer"
+            android:label="FaiCraft"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode"
             android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustResize|stateHidden"

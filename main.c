@@ -1,5 +1,5 @@
-/* Enjoer — главный цикл под Android (native activity).
- * Хуки init/update/draw/touch/reset — 3D-плейс в rbx/.
+/* FaiCraft Engine — главный цикл под Android (native activity).
+ * Хуки init/update/draw/touch/reset — демо блочного движка в rbx/.
  * Если рантайм словит ошибку, вместо падения — экран с текстом и консолью. */
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
@@ -139,6 +139,8 @@ static int32_t handle_input(struct android_app *app, AInputEvent *event) {
             case AKEYCODE_S: game_key = "s"; break;
             case AKEYCODE_D: game_key = "d"; break;
             case AKEYCODE_F: game_key = "f"; break;
+            case AKEYCODE_Q: game_key = "q"; break;
+            case AKEYCODE_E: game_key = "e"; break;
             case AKEYCODE_DPAD_LEFT: game_key = "ArrowLeft"; break;
             case AKEYCODE_DPAD_RIGHT: game_key = "ArrowRight"; break;
             case AKEYCODE_DPAD_UP: game_key = "ArrowUp"; break;
@@ -162,7 +164,7 @@ void android_main(struct android_app *app) {
     app->onInputEvent = handle_input;
     ds_sound_set_java_vm((void *)app->activity->vm);
     ds_set_activity(app->activity);
-    ds_log("Enjoer: Android, 3D-плейс на чистом C");
+    ds_log("FaiCraft Engine: Android, блочный движок на чистом C");
     for (;;) {
         struct android_poll_source *source = NULL;
         int ident;

@@ -10,7 +10,6 @@
 #endif
 
 #define NEAR_Z 0.08f
-#define FAR_Z RBX_FAR_Z
 
 typedef RbxVertex V3;
 
@@ -28,6 +27,20 @@ static float yaw_s, yaw_c, pitch_s, pitch_c;
 static float foc, view_x, view_y, side_x, side_y;
 static uint32_t fog_rgb;
 static float fog_a, fog_b;
+static float render_far_z = RBX_DEFAULT_VIEW_DISTANCE;
+static float render_fog_start = RBX_DEFAULT_FOG_START;
+static float render_fog_end = RBX_DEFAULT_FOG_END;
+
+void rbx3d_configure(float fog_start, float fog_end, float far_z) {
+    if (!isfinite(fog_start) || fog_start < 0.0f) fog_start = RBX_DEFAULT_FOG_START;
+    if (!isfinite(fog_end) || fog_end <= fog_start + 1.0f) fog_end = fog_start + 1.0f;
+    if (!isfinite(far_z) || far_z < fog_end) far_z = fog_end;
+    if (far_z < 16.0f) far_z = 16.0f;
+    if (far_z > 512.0f) far_z = 512.0f;
+    render_fog_start = fog_start;
+    render_fog_end = fog_end;
+    render_far_z = far_z;
+}
 
 static uint32_t pack(uint32_t c) {
     uint32_t a = (c >> 24) & 0xff, r = (c >> 16) & 0xff, g = (c >> 8) & 0xff, b = c & 0xff;
@@ -95,8 +108,8 @@ void rbx3d_sky(uint32_t top, uint32_t bot) {
     if (!dst) return;
     uint32_t t = pack(top), b = pack(bot);
     fog_rgb = b;
-    fog_a = RBX_FOG_START;
-    fog_b = 1.0f / (RBX_FOG_END - RBX_FOG_START);
+    fog_a = render_fog_start;
+    fog_b = 1.0f / (render_fog_end - render_fog_start);
     int tr = t & 0xff, tg = (t >> 8) & 0xff, tb = (t >> 16) & 0xff;
     int br = b & 0xff, bg = (b >> 8) & 0xff, bb = (b >> 16) & 0xff;
     float horizon = rh * .5f + foc * pitch_s / fmaxf(.05f, pitch_c);
@@ -110,7 +123,7 @@ void rbx3d_sky(uint32_t top, uint32_t bot) {
         uint32_t *row = pix + y * rw;
         for (int x = 0; x < rw; x++) row[x] = c;
         float *zr = zbuf + y * rw;
-        for (int x = 0; x < rw; x++) zr[x] = 1.0f / FAR_Z;
+        for (int x = 0; x < rw; x++) zr[x] = 1.0f / render_far_z;
     }
 }
 
@@ -138,7 +151,7 @@ static int project_v(V3 v, float *sx, float *sy) {
 int rbx3d_project(float x, float y, float z, float *sx, float *sy) {
     V3 v;
     if (!dst || !sx || !sy || !isfinite(x + y + z) ||
-        !to_view(x, y, z, &v) || v.z < NEAR_Z || v.z > FAR_Z) return 0;
+        !to_view(x, y, z, &v) || v.z < NEAR_Z || v.z > render_far_z) return 0;
     float px, py;
     if (!project_v(v, &px, &py)) return 0;
     *sx = px * (float)dst->width / rw;
@@ -162,7 +175,7 @@ static V3 lerp3(V3 a, V3 b, float t) {
 static float plane_distance(V3 v, int plane) {
     switch (plane) {
         case 0: return v.z - NEAR_Z;
-        case 1: return FAR_Z - v.z;
+        case 1: return render_far_z - v.z;
         case 2: return v.z * view_x + v.x;
         case 3: return v.z * view_x - v.x;
         case 4: return v.z * view_y + v.y;
@@ -180,7 +193,7 @@ static int clip_plane(const V3 *in, int n, V3 *out, int plane) {
         if ((da >= 0) != (db >= 0)) {
             V3 v = lerp3(a, b, da / (da - db));
             if (plane == 0) v.z = NEAR_Z;
-            else if (plane == 1) v.z = FAR_Z;
+            else if (plane == 1) v.z = render_far_z;
             out[m++] = v;
         }
         if (db >= 0) out[m++] = b;
@@ -307,7 +320,7 @@ int rbx3d_visible(float x, float y, float z, float hx, float hy, float hz) {
     V3 center;
     to_view(x, y, z, &center);
     float radius = sqrtf(hx*hx + hy*hy + hz*hz);
-    return center.z + radius >= NEAR_Z && center.z - radius <= FAR_Z &&
+    return center.z + radius >= NEAR_Z && center.z - radius <= render_far_z &&
            fabsf(center.x) - center.z*view_x <= radius*side_x &&
            fabsf(center.y) - center.z*view_y <= radius*side_y;
 }

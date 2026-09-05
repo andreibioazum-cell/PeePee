@@ -1,4 +1,4 @@
-/* Внутренний API блочного мира, рендера и управления. */
+/* Внутренний API FaiCraft Engine: блочный мир, рендер и управление. */
 #ifndef RBX_INTERNAL_H
 #define RBX_INTERNAL_H
 #include "rbx/rbx.h"
@@ -6,16 +6,13 @@
 #define RBX_PLAYER_RADIUS 0.30f
 #define RBX_PLAYER_HEIGHT 1.80f
 #define RBX_PLAYER_EYE_HEIGHT 1.62f
-#define RBX_FOG_START 28.0f
-#define RBX_FOG_END 64.0f
-#define RBX_FAR_Z 80.0f
-#define RBX_WORLD_SEED 20260905u
-
-enum { BLOCK_AIR, BLOCK_GRASS, BLOCK_DIRT, BLOCK_STONE, BLOCK_SAND,
-       BLOCK_WATER, BLOCK_LOG, BLOCK_LEAVES, BLOCK_COUNT };
-enum { CHUNK_SIZE = 16, WORLD_HEIGHT = 40, WATER_LEVEL = 8, WORLD_RADIUS = 4 };
+#define RBX_FOG_START RBX_DEFAULT_FOG_START
+#define RBX_FOG_END RBX_DEFAULT_FOG_END
+#define RBX_FAR_Z RBX_DEFAULT_VIEW_DISTANCE
+#define RBX_WORLD_SEED RBX_DEFAULT_WORLD_SEED
 
 int rbx3d_begin(Buffer *b, int sc, float cx, float cy, float cz, float yaw, float pitch, float fov_deg);
+void rbx3d_configure(float fog_start, float fog_end, float far_z);
 void rbx3d_sky(uint32_t top, uint32_t bot);
 void rbx3d_box(float x, float y, float z, float hx, float hy, float hz, float yaw, uint32_t color);
 void rbx3d_block_face(float x, float y, float z, int face, int block);
@@ -32,6 +29,11 @@ void rbx_world_update(float x, float z);
 void rbx_world_draw(void);
 int rbx_world_block(int x, int y, int z);
 int rbx_world_solid(int x, int y, int z);
+int rbx_world_set_block(int x, int y, int z, int block);
+void rbx_world_clear_edits(void);
+int rbx_world_edit_count(void);
+int rbx_world_raycast(float ox, float oy, float oz, float dx, float dy, float dz,
+                      float max_distance, RbxRaycastHit *hit);
 void rbx_world_stats(int *chunks, int *faces);
 
 void rbx_player_spawn(void);

@@ -16,6 +16,9 @@ int snd_load(const char *s) { (void)s; return 1; }
 int snd_play(const char *s) { (void)s; return 1; }
 void ds_log(const char *s,...) { (void)s; }
 void ds_runtime_error(const char *s,...) { fprintf(stderr,"%s\n",s); abort(); }
+void rbx3d_configure(float fog_start,float fog_end,float far_z) {
+    CHECK(fog_start==RBX_DEFAULT_FOG_START && fog_end==RBX_DEFAULT_FOG_END && far_z==RBX_DEFAULT_VIEW_DISTANCE);
+}
 int rbx3d_begin(Buffer *b,int sc,float x,float y,float z,float yaw,float pitch,float fov) {
     (void)b; CHECK(fov==66); scene_scale=sc; scene_x=x; scene_y=y; scene_z=z; scene_yaw=yaw; scene_pitch=pitch; return 1;
 }
